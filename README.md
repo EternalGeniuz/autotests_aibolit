@@ -11,7 +11,8 @@ playwright install
 
 ## Запуск
 ```bash
-pytest -v
+python -m pytest -vv -rA (подробный вывод со статусами)
+#defult: python -m pytest
 ```
 
 ## Переменные окружения
