@@ -1,5 +1,6 @@
 import re
 import pytest
+from playwright.sync_api import expect
 
 
 PHONE_HREF_RE = re.compile(r"^tel:\+?7\d{10}$")
@@ -47,3 +48,30 @@ def test_g7_h8_03_social_links_are_external_and_not_empty(page):
 
         assert href and href != "#", f"Пустой/плохой href у соцссылки: {href!r}"
         assert href.startswith("https://") or href.startswith("http://"), f"Соцссылка не внешняя: {href}"
+
+
+def test_g7_h8_03_footer_social_links_exact(page, base_url):
+    """
+    H8-03: В футере отображаются соцсети и ссылки соответствуют ожидаемым (строго по HTML).
+    """
+    page.goto(base_url, wait_until="domcontentloaded")
+
+    footer = page.locator("footer.footer")
+    expect(footer).to_be_visible()
+
+    social_links = footer.locator(".footer__social .social__links a.social_links_item")
+    expect(social_links).to_have_count(4)
+
+    expected = {
+        "https://vk.com/mc_aybolit",
+        "https://wa.me/78432554141",
+        "https://t.me/mcaybolit",
+        "https://www.instagram.com/aybolit_kazan/",
+    }
+
+    actual = set()
+    for i in range(social_links.count()):
+        href = (social_links.nth(i).get_attribute("href") or "").strip()
+        actual.add(href)
+
+    assert actual == expected, f"Ссылки соцсетей не совпали.\nExpected: {expected}\nActual:   {actual}"

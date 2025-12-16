@@ -3,9 +3,6 @@ from urllib.parse import parse_qs, unquote, urlparse
 import pytest
 from playwright.sync_api import expect
 
-BASE_URL = "https://mc-aybolit.ru"
-
-
 def _safe_assert_no_server_error(page):
     txt = page.locator("body").inner_text(timeout=20000).lower()
 
@@ -27,8 +24,8 @@ def _search_input(page):
     return page.locator('form[action="/search/"] input[name="q"]')
 
 
-def test_g8_h9_01_search_positive_redirects_to_search_page(page):
-    page.goto(BASE_URL, wait_until="domcontentloaded")
+def test_g8_h9_01_search_positive_redirects_to_search_page(page, base_url):
+    page.goto(base_url, wait_until="domcontentloaded")
 
     search = _search_input(page)
     expect(search).to_be_visible()
@@ -49,12 +46,12 @@ def test_g8_h9_01_search_positive_redirects_to_search_page(page):
     assert q_value == query.lower(), f"Ожидали q='{query}', получили q='{q_value}'"
 
 
-def test_g8_h9_02_clear_search_input(page):
+def test_g8_h9_02_clear_search_input(page, base_url):
     """
     H9-02 (позитив): очистка поля поиска
     Ожидание: значение инпута очищается.
     """
-    page.goto(BASE_URL, wait_until="domcontentloaded")
+    page.goto(base_url, wait_until="domcontentloaded")
 
     search = _search_input(page)
     expect(search).to_be_visible()
@@ -68,12 +65,12 @@ def test_g8_h9_02_clear_search_input(page):
     _safe_assert_no_server_error(page)
 
 
-def test_g8_h9_03_empty_query_submit_no_crash(page):
+def test_g8_h9_03_empty_query_submit_no_crash(page, base_url):
     """
     H9-03 (негатив): пустой запрос
     Ожидание: нет падения/500. Допускается остаться на главной или перейти на /search/.
     """
-    page.goto(BASE_URL, wait_until="domcontentloaded")
+    page.goto(base_url, wait_until="domcontentloaded")
 
     search = _search_input(page)
     expect(search).to_be_visible()
@@ -84,15 +81,15 @@ def test_g8_h9_03_empty_query_submit_no_crash(page):
     _safe_assert_no_server_error(page)
 
     # мягкая проверка: мы либо на главной, либо на /search/
-    assert "/search/" in page.url or page.url.rstrip("/") == BASE_URL.rstrip("/")
+    assert "/search/" in page.url or page.url.rstrip("/") == base_url.rstrip("/")
 
 
-def test_g8_h9_04_special_chars_query_no_crash(page):
+def test_g8_h9_04_special_chars_query_no_crash(page, base_url):
     """
     H9-04 (негатив): спецсимволы
     Ожидание: нет падения/500, открывается /search/ (или остается страница без ошибки).
     """
-    page.goto(BASE_URL, wait_until="domcontentloaded")
+    page.goto(base_url, wait_until="domcontentloaded")
 
     search = _search_input(page)
     expect(search).to_be_visible()
@@ -101,15 +98,15 @@ def test_g8_h9_04_special_chars_query_no_crash(page):
     search.press("Enter")
 
     _safe_assert_no_server_error(page)
-    assert "/search/" in page.url or page.url.startswith(BASE_URL)
+    assert "/search/" in page.url or page.url.startswith(base_url)
 
 
-def test_g8_h9_05_long_query_300_plus_no_ui_break(page):
+def test_g8_h9_05_long_query_300_plus_no_ui_break(page, base_url):
     """
     H9-05 (негатив): 300+ символов
     Ожидание: нет падения/500, страница отрабатывает запрос.
     """
-    page.goto(BASE_URL, wait_until="domcontentloaded")
+    page.goto(base_url, wait_until="domcontentloaded")
 
     search = _search_input(page)
     expect(search).to_be_visible()
@@ -119,4 +116,4 @@ def test_g8_h9_05_long_query_300_plus_no_ui_break(page):
     search.press("Enter")
 
     _safe_assert_no_server_error(page)
-    assert "/search/" in page.url or page.url.startswith(BASE_URL)
+    assert "/search/" in page.url or page.url.startswith(base_url)
